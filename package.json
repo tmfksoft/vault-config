@@ -1,0 +1,20 @@
+{
+  "name": "vault",
+  "version": "1.0.0",
+  "main": "build/index.js",
+  "typings": "build/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "build": "rm -rf build && tsc",
+    "start": "node build/index.js"
+  },
+  "dependencies": {
+    "@types/lodash": "^4.14.178",
+    "@types/node-vault": "^0.9.13",
+    "lodash": "^4.17.21",
+    "node-vault": "^0.9.22"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.14"
+  }
+}
