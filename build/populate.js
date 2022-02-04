@@ -8,5 +8,5 @@ var index_1 = __importDefault(require("./index"));
 console.log("Populating Vault Overrides, please wait!");
 index_1.default.populate().then(function () {
     console.log("Done!");
-    console.log("Please check that 'vault.json' looks correct.");
+    console.log("Please check that '.vault-overrides.json' looks correct.");
 });

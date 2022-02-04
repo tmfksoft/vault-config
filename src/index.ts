@@ -47,7 +47,7 @@ class Config {
 		return baseConfig;
 	}
 	loadVaultOverrides() {
-		const vaultConfig = path.join(process.cwd(), "vault.json");
+		const vaultConfig = path.join(process.cwd(), ".vault-overrides.json");
 		if (fs.existsSync(vaultConfig)) {
 			try {
 				const raw = fs.readFileSync(vaultConfig);
@@ -146,7 +146,7 @@ class Config {
 			})
 		);
 
-		const vaultConfig = path.join(process.cwd(), "vault.json");
+		const vaultConfig = path.join(process.cwd(), ".vault-overrides.json");
 		fs.writeFileSync(vaultConfig, JSON.stringify(vaultOverrides));
 
 		this.config = vanillaConfig;

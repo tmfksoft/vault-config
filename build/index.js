@@ -99,7 +99,7 @@ var Config = /** @class */ (function () {
         return baseConfig;
     };
     Config.prototype.loadVaultOverrides = function () {
-        var vaultConfig = path_1.default.join(process.cwd(), "vault.json");
+        var vaultConfig = path_1.default.join(process.cwd(), ".vault-overrides.json");
         if (fs_1.default.existsSync(vaultConfig)) {
             try {
                 var raw = fs_1.default.readFileSync(vaultConfig);
@@ -195,7 +195,7 @@ var Config = /** @class */ (function () {
                     case 3:
                         // STORE /  data / PAATH/PATH/PATH/....PATH/KEY.KVKEY.KVKEY
                         _a.sent();
-                        vaultConfig = path_1.default.join(process.cwd(), "vault.json");
+                        vaultConfig = path_1.default.join(process.cwd(), ".vault-overrides.json");
                         fs_1.default.writeFileSync(vaultConfig, JSON.stringify(vaultOverrides));
                         this.config = vanillaConfig;
                         this.loadVaultOverrides();
