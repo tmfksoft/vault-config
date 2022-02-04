@@ -86,11 +86,17 @@ var Config = /** @class */ (function () {
      * @returns Loaded configuration, empty if none.
      */
     Config.prototype.readConfig = function () {
+        var environment = process.env['NODE_ENV'] || "development";
+        var baseConfig = {};
         var regularConfig = path_1.default.join(process.cwd(), "config", "default.js");
         if (fs_1.default.existsSync(regularConfig)) {
-            return _.cloneDeep(require(regularConfig));
+            baseConfig = _.cloneDeep(require(regularConfig));
         }
-        return {};
+        var envConfig = path_1.default.join(process.cwd(), "config", environment.toLowerCase() + ".js");
+        if (fs_1.default.existsSync(envConfig)) {
+            baseConfig = _.merge(baseConfig, _.cloneDeep(require(envConfig)));
+        }
+        return baseConfig;
     };
     Config.prototype.loadVaultOverrides = function () {
         var vaultConfig = path_1.default.join(process.cwd(), "vault.json");

@@ -10,7 +10,7 @@ declare class Config {
      * Reads configuration from disk
      * @returns Loaded configuration, empty if none.
      */
-    readConfig(): any;
+    readConfig(): {};
     loadVaultOverrides(): void;
     findVaultKeys(config: any, path?: string[], res?: {
         [key: string]: string;

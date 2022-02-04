@@ -30,11 +30,21 @@ class Config {
 	 * @returns Loaded configuration, empty if none.
 	 */
 	readConfig() {
+		const environment = process.env['NODE_ENV'] || "development";
+
+		let baseConfig = {};
+
 		const regularConfig = path.join(process.cwd(), "config", "default.js");
 		if (fs.existsSync(regularConfig)) {
-			return _.cloneDeep(require(regularConfig));
+			baseConfig = _.cloneDeep(require(regularConfig));
 		}
-		return {};
+
+		const envConfig = path.join(process.cwd(), "config", `${environment.toLowerCase()}.js`);
+		if (fs.existsSync(envConfig)) {
+			baseConfig = _.merge(baseConfig, _.cloneDeep(require(envConfig)));
+		}
+
+		return baseConfig;
 	}
 	loadVaultOverrides() {
 		const vaultConfig = path.join(process.cwd(), "vault.json");
