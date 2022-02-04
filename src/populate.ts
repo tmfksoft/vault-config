@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import Config from './index';
 
 console.log("Populating Vault Overrides, please wait!");
