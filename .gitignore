@@ -3,3 +3,4 @@ package-lock.json
 vault.json
 config
 node_modules
+yarn-error.log
