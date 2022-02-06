@@ -13,7 +13,7 @@ When you've setup your `default.js` configuration, you can then run `npx vault-c
 
 Read the documentation below in order to fully understand how this works.
 
-### Environment Variables
+## Environment Variables
 Like `config` this module respects your `NODE_ENV` environment variable.
 This will dictate what `*.js` file is loaded, it will accept *any* `NODE_ENV` value and convert it to lowercase.
 
@@ -27,7 +27,7 @@ If you're using an "AppRole", which is strongly encouraged for production enviro
 
 For *both* setups, you'll need to set `VAULT_ADDR` to the base address of your Vault installation. You may already have this setup to use with Vault CLI.
 
-### It's like a cake.
+## It's like a cake.
 It's quite important to know how the configurations are loaded and in what order.
 
 This is the order in which they're loaded
@@ -40,7 +40,7 @@ This is the order in which they're loaded
 Each configuration step merges ontop of the previous step.
 The result is a single configuration in memory which can be accessed using the `get` method.
 
-### It's cached, you know.
+## It's cached, you know.
 The module *doesn't* read from Vault every time you access data from the configuration. It also *doesn't* read from Vault on startup.
 Instead a file named `.vault-overrides.json` can be populated.
 
@@ -52,7 +52,7 @@ This feature *can* be used to provide development team members with preloaded Va
 
 ### It's entirely up to you whether you commit your `.vault-overrides.json` just bear in mind you may be committing api keys. Whatever you put in Vault may end up in this file.
 
-### Populating your cache during start or build
+## Populating your cache during start or build
 You may wish to populate your cache during a build or when starting your application each time.
 This is useful for container environments such as Docker where you can simply reload your Vault config by restarting the container.
 
@@ -67,7 +67,7 @@ To do this, you can simply add `vault-config` to your `package.json` scripts:
   },
 ```
 
-### Reloading your Vault config or populating your cache programmatically.
+## Reloading your Vault config or populating your cache programmatically.
 In some situations you may wish to regenerate your `.vault-overrides.json` cache file on demand, either during runtime or via some form of tool.
 This can be easily done by calling the `populate` method, this is a Promise which resolves when generation is complete.
 
@@ -81,7 +81,7 @@ This means calling `populate` outside of your main applications memory space wil
 
 A method may be added in future to force this.
 
-### Reading Vault values and merging.
+## Reading Vault values and merging.
 There's no easy way to explain how this works.
 But, here goes.
 
@@ -135,7 +135,7 @@ There's no easy way to explain how this all works.
 Hopefully this above explanation helps.
 I can only suggest playing with this and inspecting the `config` property on the module which exposes the configuration as a whole.
 
-### Pull requests and support
+## Pull requests and support
 This module was created as part of my passion for programming, not as a tool intended to be used in actual production environments.
 I encourage PR's to fix issues, outside of this limited support will be provided.
 
@@ -144,7 +144,7 @@ Let me know if you'd like to help!
 
 If you're using this tool in your project, let me know. I'm interested to see where it finds use.
 
-### Why?
+## Why?
 I've gotten sick of setting a ton of environment variables in Docker containers when setting them up and configuring them.
 Instead I'd like to use Vault to reduce the headache when setting containers up and maintaining them.
 
