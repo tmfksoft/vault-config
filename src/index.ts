@@ -4,7 +4,7 @@ import path from 'path';
 import * as _ from 'lodash';
 
 class Config {
-	private vaultMemory: any = {};
+	// Merged version of all configurations
 	public config: any = {};
 
 	// Vault
@@ -21,8 +21,11 @@ class Config {
 		});
 
 		this.config = this.readConfig();
-		this.loadVaultOverrides();
+		// Overlay the environment config overrides. - UNIMPLEMENTED, I'll need to do some refactoring.
+		// Useful when production may wish to force set something different in the environment or during devleopment to override.
+		this.config = _.merge(this.config, this.readEnvironmentConfig());
 
+		this.loadVaultOverrides();
 	}
 
 	/**
@@ -30,14 +33,23 @@ class Config {
 	 * @returns Loaded configuration, empty if none.
 	 */
 	readConfig() {
-		const environment = process.env['NODE_ENV'] || "development";
-
 		let baseConfig = {};
 
 		const regularConfig = path.join(process.cwd(), "config", "default.js");
 		if (fs.existsSync(regularConfig)) {
 			baseConfig = _.cloneDeep(require(regularConfig));
 		}
+		return baseConfig;
+	}
+
+	/**
+	 * Reads environment specific configuration from disk.
+	 * @returns Loaded configuration, empty if none.
+	 */
+	readEnvironmentConfig() {
+		const environment = process.env['NODE_ENV'] || "development";
+
+		let baseConfig = {};
 
 		const envConfig = path.join(process.cwd(), "config", `${environment.toLowerCase()}.js`);
 		if (fs.existsSync(envConfig)) {
@@ -46,19 +58,20 @@ class Config {
 
 		return baseConfig;
 	}
+
 	loadVaultOverrides() {
 		const vaultConfig = path.join(process.cwd(), ".vault-overrides.json");
 		if (fs.existsSync(vaultConfig)) {
 			try {
 				const raw = fs.readFileSync(vaultConfig);
-				this.vaultMemory = JSON.parse(raw.toString());
+				const vaultMemory = JSON.parse(raw.toString());
 
 				const configVaultKeys = this.findVaultKeys(this.config);
 				for (let vaultKey in configVaultKeys) {
 					_.unset(this.config, vaultKey);
 				}
 
-				this.config = _.merge(this.config, this.vaultMemory);
+				this.config = _.merge(this.config, vaultMemory);
 
 			} catch (e) {
 				// Do nothing, I'm lazy.
@@ -149,8 +162,11 @@ class Config {
 		const vaultConfig = path.join(process.cwd(), ".vault-overrides.json");
 		fs.writeFileSync(vaultConfig, JSON.stringify(vaultOverrides));
 
+		// Refresh the in-memory configuration in the event this method is called during runtime in an app.
 		this.config = vanillaConfig;
+		this.config = _.merge(this.config, this.readEnvironmentConfig());
 		this.loadVaultOverrides();
+		
 	}
 
 	get(path: string, defaultValue?: any) {
