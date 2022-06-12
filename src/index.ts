@@ -102,7 +102,7 @@ class Config {
 
 	async populate() {
 		// Load clean config.
-		let vanillaConfig = this.readConfig();
+		let vanillaConfig = _.merge(this.readConfig(), this.readEnvironmentConfig());
 		let vaultOverrides: any = {};
 
 		const vaultKeys = this.findVaultKeys(vanillaConfig);

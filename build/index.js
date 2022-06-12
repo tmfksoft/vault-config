@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -54,10 +58,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __spreadArray = (this && this.__spreadArray) || function (to, from) {
-    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-        to[j] = from[i];
-    return to;
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
 };
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -74,7 +82,7 @@ var Config = /** @class */ (function () {
         this.roleId = process.env["VAULT_ROLE_ID"];
         this.secretId = process.env["VAULT_SECRET_ID"];
         this.vaultEndpoint = process.env["VAULT_ADDR"];
-        this.vConn = node_vault_1.default({
+        this.vConn = (0, node_vault_1.default)({
             token: process.env['VAULT_TOKEN'],
             endpoint: this.vaultEndpoint,
         });
@@ -103,7 +111,7 @@ var Config = /** @class */ (function () {
     Config.prototype.readEnvironmentConfig = function () {
         var environment = process.env['NODE_ENV'] || "development";
         var baseConfig = {};
-        var envConfig = path_1.default.join(process.cwd(), "config", environment.toLowerCase() + ".js");
+        var envConfig = path_1.default.join(process.cwd(), "config", "".concat(environment.toLowerCase(), ".js"));
         if (fs_1.default.existsSync(envConfig)) {
             baseConfig = _.merge(baseConfig, _.cloneDeep(require(envConfig)));
         }
@@ -135,11 +143,11 @@ var Config = /** @class */ (function () {
             var key = keys_1[_i];
             if (typeof config[key] === 'string') {
                 if (config[key].startsWith('vault:')) {
-                    res[__spreadArray(__spreadArray([], path), [key]).join('.')] = config[key].split('vault:').slice(1).join(':');
+                    res[__spreadArray(__spreadArray([], path, true), [key], false).join('.')] = config[key].split('vault:').slice(1).join(':');
                 }
             }
             else {
-                this.findVaultKeys(config[key], __spreadArray(__spreadArray([], path), [key]), res);
+                this.findVaultKeys(config[key], __spreadArray(__spreadArray([], path, true), [key], false), res);
             }
         }
         return res;
@@ -152,7 +160,7 @@ var Config = /** @class */ (function () {
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
-                        vanillaConfig = this.readConfig();
+                        vanillaConfig = _.merge(this.readConfig(), this.readEnvironmentConfig());
                         vaultOverrides = {};
                         vaultKeys = this.findVaultKeys(vanillaConfig);
                         if (!fs_1.default.existsSync('/var/run/secrets/kubernetes.io/serviceaccount/token')) return [3 /*break*/, 3];
