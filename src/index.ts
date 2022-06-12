@@ -107,6 +107,17 @@ class Config {
 
 		const vaultKeys = this.findVaultKeys(vanillaConfig);
 
+        // Use kubernetes authentication if we have a service 
+        if (fs.existsSync('/var/run/secrets/kubernetes.io/serviceaccount/token')) {
+            const token = await fs.promises.readFile('/var/run/secrets/kubernetes.io/serviceaccount/token', 'utf8');
+
+            await this.vConn.kubernetesLogin({
+                role: process.env['VAULT_KUBERNETES_ROLE'] ?? 'anonymous',
+                jwt: token,
+                mount_point: process.env['VAULT_KUBERNETES_MOUNT'] ?? 'kubernetes',
+            });
+        }
+
 		// Use app role if provided.
 		if (this.roleId && this.secretId) {
 			await this.vConn.approleLogin({
