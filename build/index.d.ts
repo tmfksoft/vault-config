@@ -1,5 +1,4 @@
 declare class Config {
-    private vaultMemory;
     config: any;
     private vConn;
     private roleId;
@@ -11,6 +10,11 @@ declare class Config {
      * @returns Loaded configuration, empty if none.
      */
     readConfig(): {};
+    /**
+     * Reads environment specific configuration from disk.
+     * @returns Loaded configuration, empty if none.
+     */
+    readEnvironmentConfig(): {};
     loadVaultOverrides(): void;
     findVaultKeys(config: any, path?: string[], res?: {
         [key: string]: string;

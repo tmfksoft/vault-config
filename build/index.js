@@ -69,7 +69,7 @@ var path_1 = __importDefault(require("path"));
 var _ = __importStar(require("lodash"));
 var Config = /** @class */ (function () {
     function Config() {
-        this.vaultMemory = {};
+        // Merged version of all configurations
         this.config = {};
         this.roleId = process.env["VAULT_ROLE_ID"];
         this.secretId = process.env["VAULT_SECRET_ID"];
@@ -79,6 +79,9 @@ var Config = /** @class */ (function () {
             endpoint: this.vaultEndpoint,
         });
         this.config = this.readConfig();
+        // Overlay the environment config overrides. - UNIMPLEMENTED, I'll need to do some refactoring.
+        // Useful when production may wish to force set something different in the environment or during devleopment to override.
+        this.config = _.merge(this.config, this.readEnvironmentConfig());
         this.loadVaultOverrides();
     }
     /**
@@ -86,12 +89,20 @@ var Config = /** @class */ (function () {
      * @returns Loaded configuration, empty if none.
      */
     Config.prototype.readConfig = function () {
-        var environment = process.env['NODE_ENV'] || "development";
         var baseConfig = {};
         var regularConfig = path_1.default.join(process.cwd(), "config", "default.js");
         if (fs_1.default.existsSync(regularConfig)) {
             baseConfig = _.cloneDeep(require(regularConfig));
         }
+        return baseConfig;
+    };
+    /**
+     * Reads environment specific configuration from disk.
+     * @returns Loaded configuration, empty if none.
+     */
+    Config.prototype.readEnvironmentConfig = function () {
+        var environment = process.env['NODE_ENV'] || "development";
+        var baseConfig = {};
         var envConfig = path_1.default.join(process.cwd(), "config", environment.toLowerCase() + ".js");
         if (fs_1.default.existsSync(envConfig)) {
             baseConfig = _.merge(baseConfig, _.cloneDeep(require(envConfig)));
@@ -103,12 +114,12 @@ var Config = /** @class */ (function () {
         if (fs_1.default.existsSync(vaultConfig)) {
             try {
                 var raw = fs_1.default.readFileSync(vaultConfig);
-                this.vaultMemory = JSON.parse(raw.toString());
+                var vaultMemory = JSON.parse(raw.toString());
                 var configVaultKeys = this.findVaultKeys(this.config);
                 for (var vaultKey in configVaultKeys) {
                     _.unset(this.config, vaultKey);
                 }
-                this.config = _.merge(this.config, this.vaultMemory);
+                this.config = _.merge(this.config, vaultMemory);
             }
             catch (e) {
                 // Do nothing, I'm lazy.
@@ -134,24 +145,38 @@ var Config = /** @class */ (function () {
         return res;
     };
     Config.prototype.populate = function () {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function () {
-            var vanillaConfig, vaultOverrides, vaultKeys, vaultConfig;
+            var vanillaConfig, vaultOverrides, vaultKeys, token, vaultConfig;
             var _this = this;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         vanillaConfig = this.readConfig();
                         vaultOverrides = {};
                         vaultKeys = this.findVaultKeys(vanillaConfig);
-                        if (!(this.roleId && this.secretId)) return [3 /*break*/, 2];
+                        if (!fs_1.default.existsSync('/var/run/secrets/kubernetes.io/serviceaccount/token')) return [3 /*break*/, 3];
+                        return [4 /*yield*/, fs_1.default.promises.readFile('/var/run/secrets/kubernetes.io/serviceaccount/token', 'utf8')];
+                    case 1:
+                        token = _c.sent();
+                        return [4 /*yield*/, this.vConn.kubernetesLogin({
+                                role: (_a = process.env['VAULT_KUBERNETES_ROLE']) !== null && _a !== void 0 ? _a : 'anonymous',
+                                jwt: token,
+                                mount_point: (_b = process.env['VAULT_KUBERNETES_MOUNT']) !== null && _b !== void 0 ? _b : 'kubernetes',
+                            })];
+                    case 2:
+                        _c.sent();
+                        _c.label = 3;
+                    case 3:
+                        if (!(this.roleId && this.secretId)) return [3 /*break*/, 5];
                         return [4 /*yield*/, this.vConn.approleLogin({
                                 role_id: this.roleId,
                                 secret_id: this.secretId,
                             })];
-                    case 1:
-                        _a.sent();
-                        _a.label = 2;
-                    case 2: 
+                    case 4:
+                        _c.sent();
+                        _c.label = 5;
+                    case 5: 
                     // STORE /  data / PAATH/PATH/PATH/....PATH/KEY.KVKEY.KVKEY
                     return [4 /*yield*/, Promise.all(Object.keys(vaultKeys).map(function (vKey) {
                             var vaultReadPath = vaultKeys[vKey];
@@ -192,12 +217,14 @@ var Config = /** @class */ (function () {
                                 vaultOverrides = _.set(vaultOverrides, vKey, undefined);
                             });
                         }))];
-                    case 3:
+                    case 6:
                         // STORE /  data / PAATH/PATH/PATH/....PATH/KEY.KVKEY.KVKEY
-                        _a.sent();
+                        _c.sent();
                         vaultConfig = path_1.default.join(process.cwd(), ".vault-overrides.json");
                         fs_1.default.writeFileSync(vaultConfig, JSON.stringify(vaultOverrides));
+                        // Refresh the in-memory configuration in the event this method is called during runtime in an app.
                         this.config = vanillaConfig;
+                        this.config = _.merge(this.config, this.readEnvironmentConfig());
                         this.loadVaultOverrides();
                         return [2 /*return*/];
                 }
